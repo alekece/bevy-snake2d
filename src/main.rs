@@ -5,6 +5,8 @@ mod assets;
 mod scenes;
 mod state;
 mod systems;
+mod physics;
+mod world;
 
 use bevy::prelude::*;
 use bevy::window::PresentMode;
@@ -28,10 +30,10 @@ fn main() {
         ..Default::default()
     })
     .insert_resource(Msaa { samples: 4 })
+    .insert_resource(ClearColor(Color::BLACK))
     .add_plugins(DefaultPlugins)
     .init_resource::<Assets>()
-    .add_plugin(ScenesPlugin)
-    .add_system(bevy::window::close_on_esc);
+    .add_plugin(ScenesPlugin);
 
     #[cfg(feature = "debug")]
     app.add_plugin(WorldInspectorPlugin::new());

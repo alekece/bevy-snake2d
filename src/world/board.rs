@@ -1,19 +1,17 @@
 use std::f32::consts::PI;
 use std::marker::PhantomData;
 
-use bevy::app::AppExit;
 use bevy::prelude::*;
 use rand::Rng;
 
-use crate::apple::Apple;
-use crate::snake::{Position, Size, SnakeFragment, SnakeHead};
-use crate::GameAssets;
+use crate::Assets;
+use crate::components::{Position, Size, RigidBody};
+
+use super::apple::Apple;
+use super::snake::{SnakeFragment, SnakeHead};
 
 const BOARD_TILE_COLOR: Color = Color::rgb(0.5, 0.9, 0.19);
 const BOARD_TILE_SIZE: Vec2 = Vec2::splat(0.99);
-
-#[derive(Component)]
-pub struct RigidBody;
 
 pub struct CollisionEvent<T, U> {
     pub collider: Entity,
@@ -46,7 +44,6 @@ pub struct BoardPlugin;
 impl Plugin for BoardPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<Board>()
-            .add_startup_system(spawn_board)
             .add_event::<CollisionEvent<SnakeHead, Apple>>()
             .add_event::<CollisionEvent<SnakeHead, RigidBody>>()
             .add_event::<CollisionEvent<SnakeHead, SnakeFragment>>()
@@ -56,15 +53,6 @@ impl Plugin for BoardPlugin {
             .add_system(detect_collision::<SnakeHead, Apple>.after("move"))
             .add_system(detect_collision::<SnakeHead, SnakeFragment>.after("move"))
             .add_system(detect_collision::<SnakeHead, RigidBody>.after("move"));
-    }
-}
-
-fn game_over<T: Component>(
-    collision_reader: EventReader<CollisionEvent<SnakeHead, T>>,
-    mut exit: EventWriter<AppExit>,
-) {
-    if !collision_reader.is_empty() {
-        exit.send(AppExit);
     }
 }
 

@@ -59,7 +59,7 @@ fn setup_splash(mut commands: Commands, assets: Res<Assets>) {
             );
         });
 
-    commands.insert_resource(SplashTimer(Timer::from_seconds(2., false)));
+    commands.insert_resource(SplashTimer(Timer::from_seconds(1.0, false)));
 }
 
 fn timer_finished(time: Res<Time>, timer: Option<ResMut<SplashTimer>>) -> bool {
