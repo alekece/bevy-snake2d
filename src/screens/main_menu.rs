@@ -2,8 +2,9 @@ use bevy::app::AppExit;
 use bevy::prelude::*;
 use iyes_loopless::prelude::*;
 
-use crate::state::State;
-use crate::{systems, Assets};
+use crate::states::AppScreen;
+use crate::assets::FontAssets;
+use crate::systems;
 
 #[derive(Component)]
 struct ButtonAction(Box<dyn Fn(&mut Commands) + Send + Sync + 'static>);
@@ -24,23 +25,23 @@ pub struct MainMenuPlugin;
 
 impl Plugin for MainMenuPlugin {
     fn build(&self, app: &mut App) {
-        app.add_enter_system(State::MainMenu, setup_main_menu)
+        app.add_enter_system(AppScreen::MainMenu, setup_main_menu)
             .add_system_set(
                 ConditionSet::new()
-                    .run_in_state(State::MainMenu)
+                    .run_in_state(AppScreen::MainMenu)
                     .with_system(start_game)
                     .with_system(exit_main_menu)
                     .with_system(button_interaction)
                     .into(),
             )
-            .add_exit_system(State::MainMenu, systems::despawn_all);
+            .add_exit_system(AppScreen::MainMenu, systems::despawn_all);
     }
 }
 
 fn start_game(mut commands: Commands, query: Query<&Interaction, (Changed<Interaction>, With<PlayButton>)>) {
     query.for_each(|interaction| {
         if matches!(*interaction, Interaction::Clicked) {
-            commands.insert_resource(NextState(State::Game));
+            commands.insert_resource(NextState(AppScreen::InGame));
         }
     });
 }
@@ -68,12 +69,12 @@ fn button_interaction(
             Interaction::Hovered => {
                 *color = button_hover.0.into();
             }
-            _ => (),
+            Interaction::Clicked => (),
         }
     });
 }
 
-fn setup_main_menu(mut commands: Commands, assets: Res<Assets>) {
+fn setup_main_menu(mut commands: Commands, fonts: Res<FontAssets>) {
     commands.spawn_bundle(Camera2dBundle::default());
 
     commands
@@ -108,7 +109,7 @@ fn setup_main_menu(mut commands: Commands, assets: Res<Assets>) {
                     parent.spawn_bundle(TextBundle::from_section(
                         "Play",
                         TextStyle {
-                            font: assets.title_font.clone(),
+                            font: fonts.text.clone(),
                             font_size: 40.0,
                             color: Color::rgb(0.9, 0.9, 0.9),
                         },
@@ -136,7 +137,7 @@ fn setup_main_menu(mut commands: Commands, assets: Res<Assets>) {
                     parent.spawn_bundle(TextBundle::from_section(
                         "Exit",
                         TextStyle {
-                            font: assets.title_font.clone(),
+                            font: fonts.text.clone(),
                             font_size: 40.0,
                             color: Color::rgb(0.9, 0.9, 0.9),
                         },

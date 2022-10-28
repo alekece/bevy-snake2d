@@ -1,20 +1,27 @@
-#![allow(incomplete_features)]
-#![feature(adt_const_params)]
+#![warn(clippy::pedantic)]
+#![allow(
+    clippy::type_complexity,
+    clippy::module_name_repetitions,
+    clippy::needless_pass_by_value,
+    clippy::cast_possible_wrap, // TODO
+    clippy::cast_possible_truncation, // TODO
+    clippy::cast_precision_loss, // TODO
+)]
+#![allow(dead_code)] // TODO
 
 mod assets;
-mod scenes;
-mod state;
+mod game;
+mod screens;
+mod states;
 mod systems;
-mod physics;
-mod world;
+mod run_criterias;
 
 use bevy::prelude::*;
 use bevy::window::PresentMode;
 #[cfg(feature = "debug")]
 use bevy_inspector_egui::WorldInspectorPlugin;
 
-use scenes::ScenesPlugin;
-use assets::Assets;
+use screens::ScreensPlugin;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -31,14 +38,22 @@ fn main() {
     })
     .insert_resource(Msaa { samples: 4 })
     .insert_resource(ClearColor(Color::BLACK))
-    .add_plugins(DefaultPlugins)
-    .init_resource::<Assets>()
-    .add_plugin(ScenesPlugin);
+    .add_plugins_with(DefaultPlugins, |plugins| {
+        #[cfg(feature = "print-schedule")]
+        plugins.disable::<bevy::log::LogPlugin>();
+
+        plugins
+    })
+    .add_plugin(ScreensPlugin);
 
     #[cfg(feature = "debug")]
     app.add_plugin(WorldInspectorPlugin::new());
 
-    app.run();
+    cfg_if::cfg_if! {
+        if #[cfg(feature = "print-schedule")] {
+            bevy_mod_debugdump::print_schedule(&mut app);
+        } else {
+            app.run();
+        }
+    }
 }
-
-
